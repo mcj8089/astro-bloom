@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Astro Bloom: Garden Guardians — Free Cute Space Defense Game</title>
+  <meta name="description" content="Defend the last garden planet from mossy meteor critters! A cozy 3D-cartoon orbital shooter with 10 handcrafted levels, two boss battles, bloom powers and a garden of upgrades." />
+  <meta name="keywords" content="astro bloom, garden guardians, space defense game, cute shooter, orbital shooter, planet defense, meteor game, boss fight, browser game, free online game" />
+  <meta name="author" content="Pipy Games" />
+  <meta name="theme-color" content="#171a3f" />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://pipygames.com/astro-bloom/" />
+
+  <!-- Open Graph / Twitter previews for every share link -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Pipy Games" />
+  <meta property="og:title" content="Astro Bloom: Garden Guardians — Free Cute Space Defense Game" />
+  <meta property="og:description" content="Defend the last garden planet from mossy meteor critters! 10 handcrafted levels, two boss battles and a garden of upgrades in a cozy orbital shooter." />
+  <meta property="og:url" content="https://pipygames.com/astro-bloom/" />
+  <meta property="og:image" content="https://pipygames.com/astro-bloom/assets/images/thumbnail.png" />
+  <meta property="og:image:width" content="1280" />
+  <meta property="og:image:height" content="720" />
+  <meta property="og:image:alt" content="Astro Bloom: Garden Guardians key art" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@pipygames" />
+  <meta name="twitter:title" content="Astro Bloom: Garden Guardians" />
+  <meta name="twitter:description" content="A cozy orbital defence game. Grow the last garden planet, pop mossy meteors and survive two royal boss fights." />
+  <meta name="twitter:image" content="https://pipygames.com/astro-bloom/assets/images/thumbnail.png" />
+
+  <link rel="icon" type="image/png" href="assets/images/ui/logo_en.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="src/sdk/sdk-styles.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Astro Bloom: Garden Guardians",
+    "description": "A cozy orbital defence game where a sprout guardian protects the last garden planet from meteor critters across ten handcrafted levels and two boss battles.",
+    "genre": ["Arcade", "Shooter", "Casual", "Defense"],
+    "gamePlatform": "Web browser",
+    "operatingSystem": "Any",
+    "applicationCategory": "Game",
+    "inLanguage": ["en", "zh-CN"],
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "publisher": { "@type": "Organization", "name": "Pipy Games" },
+    "url": "https://pipygames.com/astro-bloom/",
+    "image": "assets/images/thumbnail.png"
+  }
+  </script>
+
+  <!-- Shared Pipy Games SDK (domain licence / ads / tracking / saves) -->
+  <script src="src/sdk/sdk.config.js"></script>
+  <script src="src/sdk/gamesdk.js"></script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./lib/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body class="is-loading">
+
+<div id="app">
+  <canvas id="game-canvas" aria-label="Astro Bloom game view"></canvas>
+  <div class="scene-fx" aria-hidden="true">
+    <div class="scene-glow"></div>
+    <div class="scene-grain"></div>
+  </div>
+
+  <div id="ui">
+
+    <!-- ============================================================= LOADING -->
+    <section id="loading-screen" class="screen loading-screen is-active" aria-live="polite">
+      <div class="loading-stars" aria-hidden="true"></div>
+      <div class="loading-inner">
+        <img id="loading-logo" class="loading-logo" src="assets/images/ui/logo_en.png" alt="Astro Bloom: Garden Guardians" />
+        <p class="loading-tagline" data-i18n="menu.tagline">The last garden planet needs a guardian.</p>
+        <div class="loading-bar-wrap">
+          <div class="loading-bar"><span id="loading-fill"></span><i class="loading-seed" aria-hidden="true"></i></div>
+          <div class="loading-meta">
+            <span id="loading-caption" data-i18n="loading.ready">The garden is waking up…</span>
+            <b id="loading-percent">0%</b>
+          </div>
+        </div>
+        <p class="loading-tip" id="loading-tip">Tip: aim with your pointer, then hold to sprinkle seed shots.</p>
+        <div class="loading-footer">
+          <span class="loading-site">pipygames.com</span>
+          <span class="loading-dot" aria-hidden="true">✦</span>
+          <span class="loading-studio">Pipy Games</span>
+        </div>
+        <div id="loading-error" class="loading-error hidden">
+          <b data-i18n="error.title">The garden could not open</b>
+          <span data-i18n="error.body">Please refresh the page.</span>
+          <code id="loading-error-detail"></code>
+        </div>
+      </div>
+      <div class="loading-planet" aria-hidden="true"></div>
+    </section>
+
+    <!-- ================================================================ MENU -->
+    <section id="menu-screen" class="screen menu-screen hidden">
+      <header class="menu-top">
+        <a class="brand" href="https://pipygames.com" target="_blank" rel="noopener noreferrer" aria-label="Pipy Games">
+          <span class="brand-mark" aria-hidden="true"><i></i></span>
+          <span class="brand-word">PIPY GAMES</span>
+        </a>
+        <div class="menu-top-actions">
+          <button class="icon-btn" data-action="sound" aria-label="Sound">
+            <svg id="sound-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.6 6a9 9 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+          </button>
+          <button class="icon-btn" data-action="settings" data-i18n-aria="common.settings" aria-label="Settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.4a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2Zm8.2 4.7-1.8.5a6.9 6.9 0 0 1-.6 1.5l1 1.6a1 1 0 0 1-.2 1.3l-1 1a1 1 0 0 1-1.3.2l-1.6-1a6.9 6.9 0 0 1-1.5.6l-.5 1.8a1 1 0 0 1-1 .7h-1.4a1 1 0 0 1-1-.7l-.5-1.8a6.9 6.9 0 0 1-1.5-.6l-1.6 1a1 1 0 0 1-1.3-.2l-1-1a1 1 0 0 1-.2-1.3l1-1.6a6.9 6.9 0 0 1-.6-1.5l-1.8-.5a1 1 0 0 1-.7-1v-1.4a1 1 0 0 1 .7-1l1.8-.5a6.9 6.9 0 0 1 .6-1.5l-1-1.6a1 1 0 0 1 .2-1.3l1-1a1 1 0 0 1 1.3-.2l1.6 1a6.9 6.9 0 0 1 1.5-.6l.5-1.8a1 1 0 0 1 1-.7h1.4a1 1 0 0 1 1 .7l.5 1.8a6.9 6.9 0 0 1 1.5.6l1.6-1a1 1 0 0 1 1.3.2l1 1a1 1 0 0 1 .2 1.3l-1 1.6a6.9 6.9 0 0 1 .6 1.5l1.8.5a1 1 0 0 1 .7 1v1.4a1 1 0 0 1-.7 1Z" fill="currentColor"/></svg>
+          </button>
+          <button class="icon-btn" data-action="share" data-i18n-aria="common.share" aria-label="Share">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.6" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="18" cy="6" r="2.6" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="18" cy="18" r="2.6" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m8.4 10.7 7.2-3.5M8.4 13.3l7.2 3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="menu-content">
+        <div class="menu-copy">
+          <img id="menu-logo" class="menu-logo" src="assets/images/ui/logo_en.png" alt="Astro Bloom: Garden Guardians" />
+          <p class="menu-tagline" data-i18n="menu.tagline">The last garden planet needs a guardian.</p>
+
+          <div class="menu-buttons">
+            <button class="btn btn-primary menu-play" data-action="start">
+              <span class="btn-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M9 6.5v11l9-5.5-9-5.5Z" fill="currentColor"/></svg>
+              </span>
+              <span id="menu-play-label" data-i18n="menu.play">Guard the Garden</span>
+              <span class="btn-shine" aria-hidden="true"></span>
+            </button>
+            <div class="menu-mini">
+              <button class="btn btn-soft" data-action="endless">
+                <span class="mini-ico" aria-hidden="true">∞</span>
+                <span data-i18n="menu.endless">Endless Bloom</span>
+              </button>
+              <button class="btn btn-soft" data-action="levels">
+                <span class="mini-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M4 6.5 12 3l8 3.5-8 3.5-8-3.5Zm0 5L12 15l8-3.5M4 16l8 3.5 8-3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+                </span>
+                <span data-i18n="menu.levels">Level Map</span>
+              </button>
+              <button class="btn btn-soft" data-action="garden">
+                <span class="mini-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 21V9m0 0c0-3 2-6 6-6 0 4-2 6-6 6Zm0 4C12 10 10 7 6 7c0 4 2 6 6 6Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <span data-i18n="menu.garden">Garden</span>
+              </button>
+              <button class="btn btn-soft" data-action="howto">
+                <span class="mini-ico" aria-hidden="true">?</span>
+                <span data-i18n="menu.howto">How to Play</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="menu-progress">
+            <div class="menu-progress-head">
+              <span data-i18n="menu.progress">Campaign</span>
+              <b id="menu-level">Level 1 / 10</b>
+            </div>
+            <div class="menu-progress-bar"><span id="menu-progress-fill"></span></div>
+            <div class="menu-progress-foot">
+              <span><i class="dot gold" aria-hidden="true"></i><b id="menu-best">0</b> <em data-i18n="menu.best">Best</em></span>
+              <span><i class="dot mint" aria-hidden="true"></i><b id="menu-stars">0 / 30</b> <em data-i18n="common.stars">Stars</em></span>
+              <span><i class="dot pink" aria-hidden="true"></i><b id="menu-dust">0</b> <em data-i18n="menu.stardust">Stardust</em></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-side" aria-hidden="true">
+          <div class="floating-chip chip-best">
+            <span data-i18n="endless.best">Endless best</span>
+            <b id="menu-endless-best">0</b>
+          </div>
+          <div class="floating-chip chip-tip">
+            <span class="chip-star">✦</span>
+            <span data-i18n="menu.subtitle">A cozy orbital defence game</span>
+          </div>
+        </div>
+      </div>
+
+      <footer class="menu-footer">
+        <span data-i18n="menu.footer">Original art · Original audio · Plays offline</span>
+        <span class="menu-footer-right">pipygames.com</span>
+      </footer>
+    </section>
+
+    <!-- ================================================================= HUD -->
+    <div id="hud" class="hud hidden" aria-live="off">
+      <div class="hud-top">
+        <div class="vitals">
+          <div class="vital" id="vital-planet">
+            <span class="vital-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 8.5c3 1.2 9.5 1.2 13 0M5.5 15.5c3-1.2 9.5-1.2 13 0M12 4.6v14.8" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12 6.2c1.8 1 1.8 2.2 0 3.2-1.8-1-1.8-2.2 0-3.2Z" fill="currentColor"/></svg>
+            </span>
+            <div class="vital-main">
+              <div class="vital-row">
+                <span data-i18n="hud.planet">Garden Shield</span>
+                <b id="hud-planet-value">100</b>
+              </div>
+              <div class="meter"><span id="hud-planet-fill" class="meter-fill planet-fill"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hud-level">
+          <span class="hud-level-number" id="hud-level-number">01</span>
+          <div class="hud-level-copy">
+            <b id="hud-level-name">First Bloom</b>
+            <span id="hud-level-tag">Basics</span>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <div class="score-chip">
+            <span data-i18n="hud.score">Score</span>
+            <b id="hud-score">0</b>
+          </div>
+          <div class="dust-chip" title="Stardust">
+            <span class="dust-ico" aria-hidden="true">✦</span>
+            <b id="hud-stardust">0</b>
+          </div>
+          <div class="turret-chip hidden" id="turret-chip">
+            <span aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 21V9m0 0c0-3 2-6 6-6 0 4-2 6-6 6Zm0 4C12 10 10 7 6 7c0 4 2 6 6 6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </span>
+            <b>0</b>
+          </div>
+          <button class="icon-btn hud-icon" data-action="share" data-i18n-aria="common.share" aria-label="Share">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="18" cy="6" r="2.4" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="18" cy="18" r="2.4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m8.3 10.8 7.4-3.6M8.3 13.2l7.4 3.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+          </button>
+          <button class="icon-btn hud-icon" data-action="pause" data-i18n-aria="hud.pause" aria-label="Pause">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.5v13M15.5 5.5v13" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="boss-wrap" class="boss-wrap hidden">
+        <div class="boss-head">
+          <span class="boss-eyebrow" data-i18n="hud.boss">Garden Invader</span>
+          <b id="boss-name">Cinder King</b>
+          <span id="boss-title" class="boss-title">The Mountain That Ate Spring</span>
+          <span id="boss-phase" class="boss-phase">Phase 1</span>
+        </div>
+        <div class="boss-meter"><span id="boss-fill"></span><i class="boss-glint" aria-hidden="true"></i></div>
+      </div>
+
+      <div id="combo" class="combo">
+        <b id="combo-value">×2</b>
+        <span data-i18n="hud.combo">Combo</span>
+      </div>
+
+      <div id="hint-bar" class="hint-bar hidden"></div>
+
+      <div class="hud-bottom">
+        <div id="lane-chip" class="lane-chip hidden"></div>
+        <div class="wave-chip">
+          <span data-i18n="hud.wave" id="hud-wave-label">Wave</span>
+          <b id="hud-wave">Wave 1/2</b>
+        </div>
+        <button id="bloom-btn" class="bloom-btn" data-action="bloom" aria-label="Bloom Burst">
+          <span class="bloom-orbit" aria-hidden="true"></span>
+          <span class="bloom-core" aria-hidden="true">
+            <svg viewBox="0 0 48 48"><path d="M24 41V23m0 0c0-7 5-14 14-14 0 9-5 14-14 14Zm0 10c0-7-5-14-14-14 0 9 5 14 14 14Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="18" r="4.2" fill="currentColor"/></svg>
+          </span>
+          <b id="bloom-value">0%</b>
+        </button>
+      </div>
+
+      <div id="level-intro" class="level-intro hidden"></div>
+      <div id="boss-warning" class="boss-warning hidden">
+        <span data-i18n="boss.incoming">Boss incoming</span>
+        <b>Cinder King</b>
+      </div>
+    </div>
+
+    <!-- ============================================================== LEVELS -->
+    <section id="levels-screen" class="screen panel-screen levels-screen hidden">
+      <div class="panel-head">
+        <button class="icon-btn back-btn" data-action="levels-back" aria-label="Back">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div>
+          <span class="eyebrow" data-i18n="menu.progress">Campaign</span>
+          <h2 data-i18n="level.select.title">The Garden Map</h2>
+          <p data-i18n="level.select.subtitle">Ten little worlds, ten different defences.</p>
+        </div>
+        <div class="panel-dust"><span>✦</span><b id="garden-dust-top">0</b></div>
+      </div>
+      <div id="levels-grid" class="levels-grid"></div>
+      <p class="panel-note" data-i18n="level.select.footer">Every level adds a new rule — no two skies play the same.</p>
+    </section>
+
+    <!-- ============================================================== GARDEN -->
+    <section id="garden-screen" class="screen panel-screen garden-screen hidden">
+      <div class="panel-head">
+        <button class="icon-btn back-btn" data-action="garden-back" aria-label="Back">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div>
+          <span class="eyebrow" data-i18n="menu.garden">Garden</span>
+          <h2 data-i18n="garden.title">The Garden</h2>
+          <p data-i18n="garden.subtitle">Spend stardust to help the next bloom.</p>
+        </div>
+        <div class="panel-dust"><span>✦</span><b id="garden-dust">0</b></div>
+      </div>
+      <div id="garden-grid" class="garden-grid"></div>
+      <p class="panel-note" data-i18n="garden.subtitle">Spend stardust to help the next bloom.</p>
+    </section>
+
+    <!-- =============================================================== HOWTO -->
+    <section id="howto-screen" class="screen panel-screen howto-screen hidden">
+      <div class="panel-head">
+        <button class="icon-btn back-btn" data-action="howto-back" aria-label="Back">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div>
+          <span class="eyebrow" data-i18n="menu.howto">How to Play</span>
+          <h2 data-i18n="howto.title">How to Guard a Garden</h2>
+        </div>
+      </div>
+      <div class="howto-body">
+        <div class="howto-list">
+          <article class="howto-step">
+            <span class="howto-num">01</span>
+            <div class="howto-ico aim-ico" aria-hidden="true">
+              <img src="assets/images/guide_hand.png" alt="" />
+            </div>
+            <div><b data-i18n="tutorial.aim.title">Aim your guardian</b><p data-i18n="howto.aim">Move the pointer around the planet to aim your guardian.</p></div>
+          </article>
+          <article class="howto-step">
+            <span class="howto-num">02</span>
+            <div class="howto-ico fire-ico" aria-hidden="true">
+              <svg viewBox="0 0 48 48"><path d="M24 6v22m0-22c0-3 3-6 7-6 0 4-3 6-7 6Zm0 8c0-3-3-6-7-6 0 4 3 6 7 6Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="33" r="8" fill="none" stroke="currentColor" stroke-width="2.6"/><circle cx="24" cy="33" r="3" fill="currentColor"/></svg>
+            </div>
+            <div><b data-i18n="tutorial.fire.title">Sprinkle seed shots</b><p data-i18n="howto.fire">Hold the pointer or screen to fire seed shots.</p></div>
+          </article>
+          <article class="howto-step">
+            <span class="howto-num">03</span>
+            <div class="howto-ico bloom-ico" aria-hidden="true">
+              <svg viewBox="0 0 48 48"><path d="M24 42V25m0 0c0-8 6-16 16-16 0 10-6 16-16 16Zm0 10c0-8-6-16-16-16 0 10 6 16 16 16Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="19" r="4.6" fill="currentColor"/></svg>
+            </div>
+            <div><b data-i18n="tutorial.special.title">Bloom Burst</b><p data-i18n="howto.special">Press Space or the bloom button when the meter is full.</p></div>
+          </article>
+        </div>
+        <div class="howto-controls">
+          <div class="control-card">
+            <span class="control-label" data-i18n="menu.modeCampaign">Campaign</span>
+            <p data-i18n="howto.desktop">Mouse: aim, hold to fire. Space: Bloom Burst. A/D: change lane. P: pause.</p>
+          </div>
+          <div class="control-card">
+            <span class="control-label" data-i18n="menu.modeEndless">Endless</span>
+            <p data-i18n="howto.mobile">Touch: drag to aim, hold to fire, tap the bloom button for your special.</p>
+          </div>
+          <div class="control-card tip-card">
+            <span class="control-label">✦</span>
+            <p data-i18n="howto.tip">The garden shield is your only life. Let a meteor land and the petals fall.</p>
+          </div>
+        </div>
+      </div>
+      <div class="panel-foot">
+        <button class="btn btn-primary" data-action="howto-back"><span data-i18n="howto.close">Let's play</span></button>
+      </div>
+    </section>
+
+    <!-- ============================================================== RESULT -->
+    <section id="result-screen" class="screen result-screen hidden">
+      <div class="result-petals" aria-hidden="true"></div>
+      <div class="result-card">
+        <div class="result-top">
+          <span class="result-eyebrow" id="result-level">Level 1</span>
+          <span class="result-badge hidden" id="result-badge">New best!</span>
+        </div>
+        <h2 id="result-title">Garden Saved</h2>
+        <p id="result-sub">Garden restored</p>
+        <div id="result-stars" class="result-stars"></div>
+        <div class="result-stats">
+          <div><span data-i18n="result.score">Score</span><b id="result-score">0</b></div>
+          <div><span data-i18n="result.kills">Meteors cleared</span><b id="result-kills">0</b></div>
+          <div><span data-i18n="result.stardust">Stardust earned</span><b id="result-coins">0</b></div>
+          <div><span data-i18n="common.best">Best</span><b id="result-best">0</b></div>
+        </div>
+        <div class="result-actions">
+          <button id="result-next" class="btn btn-primary" data-action="next">
+            <span class="btn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 6.5v11l9-5.5-9-5.5Z" fill="currentColor"/></svg></span>
+            <span data-i18n="result.next">Next Garden</span>
+          </button>
+          <button class="btn btn-ghost" data-action="retry">
+            <span class="btn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2.1-5M5 5v5h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span data-i18n="result.retry">Try Again</span>
+          </button>
+          <button class="btn btn-ghost" data-action="menu">
+            <span data-i18n="result.menu">Garden Map</span>
+          </button>
+          <button id="result-share" class="btn btn-gold" data-action="share">
+            <span class="btn-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="18" cy="6" r="2.4" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="18" cy="18" r="2.4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m8.3 10.8 7.4-3.6M8.3 13.2l7.4 3.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+            <span data-i18n="result.share">Show Off</span>
+          </button>
+          <button id="result-revive" class="btn btn-reward hidden" data-action="revive">
+            <span class="btn-ico" aria-hidden="true">▶</span>
+            <span data-i18n="result.revive">Watch & Revive</span>
+          </button>
+          <button id="result-double" class="btn btn-reward hidden" data-action="double">
+            <span data-i18n="ads.double">Double stardust</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =============================================================== PAUSE -->
+    <section id="pause-screen" class="screen pause-screen hidden">
+      <div class="pause-card">
+        <span class="eyebrow" data-i18n="pause.title">Taking a breather</span>
+        <h2 data-i18n="pause.title">Taking a breather</h2>
+        <div class="pause-actions">
+          <button class="btn btn-primary" data-action="resume"><span data-i18n="pause.resume">Back to the garden</span></button>
+          <button class="btn btn-ghost" data-action="restart"><span data-i18n="pause.restart">Replant level</span></button>
+          <button class="btn btn-ghost" data-action="settings"><span data-i18n="pause.settings">Sound & comfort</span></button>
+          <button class="btn btn-ghost" data-action="quit"><span data-i18n="pause.quit">Leave to map</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ DOMAIN -->
+    <section id="domain-screen" class="screen domain-screen hidden">
+      <div class="domain-art" aria-hidden="true"></div>
+      <div class="domain-card">
+        <img class="domain-logo" src="assets/images/ui/logo_en.png" alt="Astro Bloom" />
+        <span class="eyebrow" data-i18n="domain.title">A Garden Grows Here</span>
+        <h2 data-i18n="domain.body">This little planet only blooms on pipygames.com.</h2>
+        <p class="domain-caption" id="domain-caption">Opening pipygames.com in 3s</p>
+        <div class="domain-bar"><span id="domain-fill"></span></div>
+        <div class="domain-meta">
+          <span><b id="domain-seconds">3</b>s</span>
+          <span class="domain-host"><b id="domain-host">pipygames.com</b></span>
+        </div>
+        <a class="domain-site" href="https://pipygames.com" target="_top" rel="noopener">pipygames.com</a>
+        <span class="domain-current">host: <b id="domain-current"></b></span>
+      </div>
+    </section>
+
+    <!-- ================================================================= AD -->
+    <section id="ad-screen" class="screen ad-screen hidden">
+      <div class="ad-card">
+        <div class="ad-top">
+          <span class="ad-badge" data-i18n="ads.label">Sponsored bloom</span>
+          <span id="ad-timer" class="ad-timer">2s</span>
+        </div>
+        <div class="ad-art" aria-hidden="true">
+          <span class="ad-petal p1"></span><span class="ad-petal p2"></span><span class="ad-petal p3"></span>
+          <span class="ad-seed"></span>
+        </div>
+        <h3 data-i18n="ads.mockTitle">A little word from the garden</h3>
+        <p class="ad-note" data-i18n="ads.mockBody">This is a reserved ad placement.</p>
+        <div class="ad-actions">
+          <button id="ad-claim" class="btn btn-primary hidden" data-action="ad-claim"><span data-i18n="ads.claim">Take it</span></button>
+          <button id="ad-skip" class="btn btn-ghost" data-action="ad-skip"><span data-i18n="common.skip">Skip</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== SHARE -->
+    <div id="settings-modal" class="modal hidden">
+      <div class="modal-card settings-card">
+        <div class="modal-head">
+          <h3 data-i18n="settings.title">Sound & Comfort</h3>
+          <button class="icon-btn" data-action="close-settings" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="setting-row">
+          <span data-i18n="settings.music">Music</span>
+          <input id="setting-music" type="range" min="0" max="100" value="55" aria-label="Music volume" />
+        </div>
+        <div class="setting-row">
+          <span data-i18n="settings.sfx">Sound effects</span>
+          <input id="setting-sfx" type="range" min="0" max="100" value="78" aria-label="Sound effects volume" />
+        </div>
+        <div class="setting-row">
+          <span data-i18n="settings.shake">Screen shake</span>
+          <input id="setting-shake" type="range" min="0" max="100" value="100" aria-label="Screen shake" />
+        </div>
+        <div class="setting-row setting-quality">
+          <span data-i18n="settings.quality">Visual quality</span>
+          <div class="segmented">
+            <button data-quality="low" data-i18n="settings.qualityLow">Low</button>
+            <button data-quality="medium" data-i18n="settings.qualityMedium">Medium</button>
+            <button data-quality="high" data-i18n="settings.qualityHigh">High</button>
+          </div>
+        </div>
+        <div class="settings-foot">
+          <button class="btn btn-danger-soft" data-action="reset-progress"><span data-i18n="settings.reset">Reset progress</span></button>
+          <button class="btn btn-primary" data-action="close-settings"><span data-i18n="settings.close">Back to the garden</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="share-modal" class="modal share-modal hidden">
+      <div class="share-panel">
+        <div class="share-preview">
+          <canvas id="share-canvas" width="1200" height="630" aria-label="Share card preview"></canvas>
+          <div class="share-preview-actions">
+            <button class="btn btn-soft" data-action="copy-link"><span data-i18n="share.copy">Copy link</span></button>
+            <button class="btn btn-soft" data-action="download-card"><span data-i18n="share.download">Save card</span></button>
+            <button id="btn-share-native" class="btn btn-gold hidden" data-action="native-share"><span data-i18n="share.native">Share with apps</span></button>
+          </div>
+        </div>
+        <div class="share-copy">
+          <div class="share-head">
+            <span class="eyebrow" data-i18n="menu.share">Invite a Friend</span>
+            <h3 data-i18n="share.title">Invite a Friend</h3>
+            <p data-i18n="share.subtitle">Grow the garden together — send a little stardust.</p>
+            <button class="icon-btn share-close" data-action="close-share" aria-label="Close">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <label class="share-name">
+            <span data-i18n="share.nameLabel">Your gardener name (optional)</span>
+            <input id="share-name" type="text" maxlength="18" data-i18n-placeholder="share.namePlaceholder" placeholder="e.g. Mossy Mia" autocomplete="nickname" />
+          </label>
+          <div id="share-platforms" class="share-platforms"></div>
+          <p id="share-tip" class="share-tip hidden"></p>
+          <p class="share-og-note" data-i18n="share.ogNote">A preview card and game link are included automatically.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== GUIDE -->
+    <div id="guide" class="guide hidden">
+      <div class="guide-dim"></div>
+      <img class="guide-hand" src="assets/images/guide_hand.png" alt="" aria-hidden="true" />
+      <img class="guide-arrow" src="assets/images/guide_arrow.png" alt="" aria-hidden="true" />
+      <div class="guide-card">
+        <div class="guide-progress">
+          <span id="guide-step">1 / 3</span>
+          <div id="guide-dots" class="guide-dots"></div>
+        </div>
+        <h3 id="guide-title">Aim your guardian</h3>
+        <p id="guide-body">Move the pointer around the planet.</p>
+        <div class="guide-actions">
+          <button class="btn btn-ghost" data-action="guide-skip"><span data-i18n="tutorial.skip">Skip lesson</span></button>
+          <button class="btn btn-primary" data-action="guide-next"><span id="guide-next-label" data-i18n="tutorial.next">Got it</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast-layer" class="toast-layer" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+  /* Keep the very first paint in one language: swap the wordmark before boot. */
+  (function () {
+    try {
+      var q = new URLSearchParams(location.search);
+      var lang = (q.get("lang") || "").toLowerCase();
+      if (lang.indexOf("zh") === 0) {
+        document.documentElement.lang = "zh-CN";
+        var embedded = window.__ASTRO_EMBEDDED__;
+        var zhLogo = (embedded && embedded.images &&
+          embedded.images["assets/images/ui/logo_zh.png"]) ||
+          "assets/images/ui/logo_zh.png";
+        var imgs = document.querySelectorAll(
+          "#loading-logo, #menu-logo, .domain-logo"
+        );
+        for (var i = 0; i < imgs.length; i += 1) {
+          imgs[i].src = zhLogo;
+        }
+      }
+    } catch (e) { /* very old browser */ }
+  })();
+</script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
+
